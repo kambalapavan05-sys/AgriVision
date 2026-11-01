@@ -28,3 +28,7 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+
+# Local database and editor settings
+backend/app/data/*.db*
+.vscode/

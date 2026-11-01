@@ -13,6 +13,7 @@ import { RecordTable } from './components/DataTable/RecordTable';
 import { UploadModal } from './components/UploadModal';
 import { ReportModal } from './components/ReportModal';
 import { EmptyState } from './components/EmptyState';
+import { LoginPage } from './components/LoginPage';
 import { api } from './services/api';
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   // Metadata & Filters
   const [metadata, setMetadata] = useState(null);
@@ -157,6 +159,7 @@ export function App() {
       <Navbar
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenReport={() => setIsReportOpen(true)}
+        onOpenLogin={() => setIsLoginOpen(true)}
         isDemo={metadata?.dataset_is_demo ?? true}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
@@ -175,6 +178,7 @@ export function App() {
           totalRecords={metadata?.total_records || 0}
           yearsRange={`${metadata?.min_year || 2000} - ${metadata?.max_year || 2023}`}
           onOpenUpload={() => setIsUploadOpen(true)}
+          onOpenLogin={() => setIsLoginOpen(true)}
         />
 
         {/* Central Content Area */}
@@ -312,6 +316,16 @@ export function App() {
         stateComparisons={stateComparisons}
         cropDistributions={cropDistributions}
       />
+
+      {/* Authentication / Login Page Modal Overlay */}
+      {isLoginOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <LoginPage
+            onClose={() => setIsLoginOpen(false)}
+            onContinueAsGuest={() => setIsLoginOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

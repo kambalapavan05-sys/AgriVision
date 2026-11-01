@@ -33,7 +33,7 @@ def init_db() -> None:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-        # User authentication table
+    # User authentication table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +43,6 @@ def init_db() -> None:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
 
     # Performance indexes for aggregations and filtering
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_crop_state_year ON crop_production (crop, state, crop_year)")

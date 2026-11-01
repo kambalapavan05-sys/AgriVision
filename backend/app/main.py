@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -15,20 +14,21 @@ load_dotenv()
 # Initialize database and demo data
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize SQLite tables and indexes
     init_db()
-
+    # Seed high-fidelity DEMO dataset if database is empty
     count = seed_demo_data_if_empty()
-
-    print(
-        f"[AgriVision] Initialized SQLite database with {count} records."
-    )
-
+    print(f"[AgriVision] Initialized SQLite database with {count} records.")
     yield
 
 
 # Create FastAPI application
-app = FastAPI(lifespan=lifespan)
-
+app = FastAPI(
+    title="AgriVision API",
+    description="Agricultural Crop Production Analysis and Agronomic Intelligence API",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # Enable CORS for frontend clients
 app.add_middleware(
@@ -39,31 +39,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Register existing API routers
+# Mount API routers
 app.include_router(metadata.router)
 app.include_router(analytics.router)
 app.include_router(records.router)
 app.include_router(upload.router)
-
-# Register authentication router
 app.include_router(auth.router)
 
 
-# Root API
 @app.get("/")
 def root():
     conn = get_db_connection()
     cursor = conn.cursor()
-
     cursor.execute("SELECT COUNT(*) FROM crop_production")
     count = cursor.fetchone()[0]
-
-    cursor.execute(
-        "SELECT COUNT(*) FROM crop_production WHERE is_demo = 1"
-    )
+    cursor.execute("SELECT COUNT(*) FROM crop_production WHERE is_demo = 1")
     demo_count = cursor.fetchone()[0]
-
     conn.close()
 
     return {

@@ -7,7 +7,32 @@ const client = axios.create({
   timeout: 30000,
 });
 
+// Intercept requests and add Bearer token if present
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('agrivision_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const api = {
+  // Authentication
+  login: async (email, password) => {
+    const res = await client.post('/auth/login', { email, password });
+    return res.data;
+  },
+
+  register: async (name, email, password) => {
+    const res = await client.post('/auth/register', { name, email, password });
+    return res.data;
+  },
+
+  getMe: async () => {
+    const res = await client.get('/auth/me');
+    return res.data;
+  },
+
   // Metadata & Filters
   getMetadata: async () => {
     const res = await client.get('/metadata/filters');

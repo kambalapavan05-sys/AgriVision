@@ -11,7 +11,10 @@ import {
   ChevronRight,
   Database,
   Calendar,
+  LogIn,
+  UserCheck,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Sidebar = ({
   activeTab,
@@ -23,7 +26,9 @@ export const Sidebar = ({
   totalRecords = 0,
   yearsRange = '2000 - 2023',
   onOpenUpload,
+  onOpenLogin,
 }) => {
+  const { user, isAuthenticated } = useAuth();
   const navItems = [
     { id: 'overview', label: 'Overview Dashboard', icon: LayoutDashboard },
     { id: 'trends', label: 'Historical Trends', icon: TrendingUp },
@@ -91,6 +96,30 @@ export const Sidebar = ({
           <div className="flex justify-center" title={`${totalRecords} records (${yearsRange})`}>
             <div className="h-2 w-2 rounded-full bg-emerald-400" />
           </div>
+        )}
+
+        {/* Auth status / Sign In */}
+        {!isAuthenticated ? (
+          <button
+            onClick={onOpenLogin}
+            className={`flex w-full items-center gap-2 rounded-xl bg-forest-900/90 border border-emerald-800/40 p-2.5 text-xs font-semibold text-emerald-300 hover:bg-forest-800 hover:text-emerald-200 transition-colors ${
+              collapsed ? 'justify-center' : ''
+            }`}
+            title="Sign In"
+          >
+            <LogIn className="h-4 w-4 shrink-0 text-emerald-400" />
+            {!collapsed && <span>Sign In</span>}
+          </button>
+        ) : (
+          !collapsed && (
+            <div className="flex items-center gap-2 rounded-xl bg-forest-900/60 border border-emerald-800/30 p-2.5 text-xs">
+              <UserCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+              <div className="truncate">
+                <p className="font-semibold text-white truncate">{user?.name || 'User'}</p>
+                <p className="text-[10px] text-emerald-400/80">Active Session</p>
+              </div>
+            </div>
+          )
         )}
 
         {/* Desktop collapse toggle */}
