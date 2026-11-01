@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #021a10;
+    color: #f1f5f9;
+  }
+}
+
+/* Custom scrollbar for dark emerald aesthetic */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #042718;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0e6341;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #148558;
+}
+
+/* Glassmorphism and glow utility classes */
+.agri-card {
+  background: rgba(4, 39, 24, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(2, 26, 16, 0.5);
+}
+
+.agri-card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.agri-card-hover:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.1);
+  transform: translateY(-2px);
+}
+
+.agri-glow {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
