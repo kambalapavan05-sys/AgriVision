@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sprout,
   Mail,
@@ -18,9 +18,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export function LoginPage({ onClose, onContinueAsGuest }) {
+export function LoginPage({ onClose, onContinueAsGuest, initialRegisterMode = false }) {
   const { login, register } = useAuth();
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [isRegisterMode, setIsRegisterMode] = useState(initialRegisterMode);
+
+  useEffect(() => {
+    setIsRegisterMode(initialRegisterMode);
+  }, [initialRegisterMode]);
 
   // Form states
   const [name, setName] = useState('');

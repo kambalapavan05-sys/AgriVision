@@ -37,9 +37,9 @@ export function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Post-login redirect: when user logs in while at /login, send them to /dashboard
+  // Post-login redirect: when user logs in while at /login or /register, send them to /dashboard
   useEffect(() => {
-    if (currentPath === '/login' && isAuthenticated) {
+    if ((currentPath === '/login' || currentPath === '/register') && isAuthenticated) {
       navigate('/dashboard');
     }
   }, [currentPath, isAuthenticated, navigate]);
@@ -184,22 +184,18 @@ export function App() {
   if (currentPath === '/') {
     return (
       <LandingPage
-        onOpenDashboard={() => {
-          if (isAuthenticated) {
-            navigate('/dashboard');
-          } else {
-            navigate('/login');
-          }
-        }}
+        onOpenDashboard={() => navigate('/dashboard')}
         onGoToLogin={() => navigate('/login')}
+        onGoToRegister={() => navigate('/register')}
       />
     );
   }
 
-  // Dedicated /login route renders the full LoginPage
-  if (currentPath === '/login') {
+  // Dedicated /login or /register route renders the full LoginPage
+  if (currentPath === '/login' || currentPath === '/register') {
     return (
       <LoginPage
+        initialRegisterMode={currentPath === '/register'}
         onClose={() => navigate('/dashboard')}
         onContinueAsGuest={() => navigate('/dashboard')}
       />
