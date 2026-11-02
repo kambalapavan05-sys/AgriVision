@@ -38,7 +38,7 @@ async def validate_csv(file: UploadFile = File(...)):
 @router.post("/commit", response_model=UploadCommitResponse)
 async def commit_csv(file: UploadFile = File(...)):
     """
-    Validates and ingests valid records from uploaded CSV into the SQLite database.
+    Validates and ingests valid records from uploaded CSV into the database.
     """
     if not file.filename.endswith((".csv", ".txt")):
         raise HTTPException(status_code=400, detail="Only CSV files (.csv) are supported.")

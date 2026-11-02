@@ -1,10 +1,11 @@
 
 import os
 import re
-import sqlite3
 from datetime import datetime, timedelta, timezone
 
 import jwt
+import psycopg
+import psycopg.errors
 from pwdlib import PasswordHash
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -158,19 +159,22 @@ def register_user(data: UserRegister):
             """
             INSERT INTO users (name, email, password_hash)
             VALUES (?, ?, ?)
+            RETURNING id
             """,
             (name, email, hashed_password)
         )
+        user_row = cursor.fetchone()
+        user_id = user_row[0]
 
         conn.commit()
 
         return {
-            "id": cursor.lastrowid,
+            "id": user_id,
             "name": name,
             "email": email
         }
 
-    except sqlite3.IntegrityError:
+    except psycopg.errors.UniqueViolation:
         raise HTTPException(
             status_code=409,
             detail="An account with this email already exists."
@@ -191,7 +195,7 @@ def login_user(data: UserLogin):
 
     try:
         user = conn.execute(
-            "SELECT id, password_hash FROM users WHERE email = ?",
+            "SELECT id, password_hash FROM users WHERE LOWER(email) = LOWER(?)",
             (email,)
         ).fetchone()
 

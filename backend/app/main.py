@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,11 +15,11 @@ load_dotenv()
 # Initialize database and demo data
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize SQLite tables and indexes
+    # Initialize Postgres tables and indexes
     init_db()
     # Seed high-fidelity DEMO dataset if database is empty
     count = seed_demo_data_if_empty()
-    print(f"[AgriVision] Initialized SQLite database with {count} records.")
+    print(f"[AgriVision] Initialized Postgres (Neon) database with {count} records.")
     yield
 
 
@@ -31,9 +32,17 @@ app = FastAPI(
 )
 
 # Enable CORS for frontend clients
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+if frontend_origin and frontend_origin not in allowed_origins:
+    allowed_origins.append(frontend_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

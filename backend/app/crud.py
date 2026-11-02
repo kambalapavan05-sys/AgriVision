@@ -40,11 +40,11 @@ def build_filter_clauses(
 
     if search and search.strip():
         clauses.append("""
-            (state LIKE :search 
-             OR district LIKE :search 
-             OR crop LIKE :search 
-             OR season LIKE :search
-             OR CAST(crop_year AS TEXT) LIKE :search)
+            (state ILIKE :search 
+             OR district ILIKE :search 
+             OR crop ILIKE :search 
+             OR season ILIKE :search
+             OR CAST(crop_year AS TEXT) ILIKE :search)
         """)
         params["search"] = f"%{search.strip()}%"
 
@@ -433,7 +433,7 @@ def get_paginated_records(
         SELECT 
             id, state, district, crop, crop_year, season,
             area_hectares, production_tonnes, rainfall_mm, is_demo,
-            CASE WHEN area_hectares > 0 THEN ROUND(production_tonnes / area_hectares, 3) ELSE 0.0 END AS yield_tonnes_per_ha
+            CASE WHEN area_hectares > 0 THEN ROUND((production_tonnes / area_hectares)::numeric, 3)::float8 ELSE 0.0 END AS yield_tonnes_per_ha
         FROM crop_production
         WHERE {where_clause}
         ORDER BY {col_expr} {direction}
@@ -486,7 +486,7 @@ def get_export_rows(
         SELECT 
             id, state, district, crop, crop_year, season,
             area_hectares, production_tonnes, rainfall_mm,
-            CASE WHEN area_hectares > 0 THEN ROUND(production_tonnes / area_hectares, 3) ELSE 0.0 END AS yield_tonnes_per_ha,
+            CASE WHEN area_hectares > 0 THEN ROUND((production_tonnes / area_hectares)::numeric, 3)::float8 ELSE 0.0 END AS yield_tonnes_per_ha,
             is_demo
         FROM crop_production
         WHERE {where_clause}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { LandingPage } from './pages/LandingPage';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { FilterBar } from './components/FilterBar';
@@ -14,9 +15,35 @@ import { UploadModal } from './components/UploadModal';
 import { ReportModal } from './components/ReportModal';
 import { EmptyState } from './components/EmptyState';
 import { LoginPage } from './components/LoginPage';
+import { useAuth } from './context/AuthContext';
 import { api } from './services/api';
 
 export function App() {
+  const { isAuthenticated } = useAuth();
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+
+  // Sync with browser back/forward history navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigate = useCallback((path) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Post-login redirect: when user logs in while at /login, send them to /dashboard
+  useEffect(() => {
+    if (currentPath === '/login' && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [currentPath, isAuthenticated, navigate]);
+
   // Navigation & UI States
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -153,16 +180,44 @@ export function App() {
 
   const hasZeroResults = kpis && kpis.record_count === 0 && !loadingKpis;
 
+  // Root path "/" renders the dedicated full-screen Landing Page
+  if (currentPath === '/') {
+    return (
+      <LandingPage
+        onOpenDashboard={() => {
+          if (isAuthenticated) {
+            navigate('/dashboard');
+          } else {
+            navigate('/login');
+          }
+        }}
+        onGoToLogin={() => navigate('/login')}
+      />
+    );
+  }
+
+  // Dedicated /login route renders the full LoginPage
+  if (currentPath === '/login') {
+    return (
+      <LoginPage
+        onClose={() => navigate('/dashboard')}
+        onContinueAsGuest={() => navigate('/dashboard')}
+      />
+    );
+  }
+
+  // /dashboard or any existing/unknown route renders the main Dashboard
   return (
     <div className="min-h-screen bg-forest-950 text-slate-100 flex flex-col font-sans">
       {/* Top Navbar */}
       <Navbar
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenReport={() => setIsReportOpen(true)}
-        onOpenLogin={() => setIsLoginOpen(true)}
+        onOpenLogin={() => navigate('/login')}
         isDemo={metadata?.dataset_is_demo ?? true}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
+        onNavigate={navigate}
       />
 
       {/* Main Dashboard Layout */}
@@ -178,7 +233,7 @@ export function App() {
           totalRecords={metadata?.total_records || 0}
           yearsRange={`${metadata?.min_year || 2000} - ${metadata?.max_year || 2023}`}
           onOpenUpload={() => setIsUploadOpen(true)}
-          onOpenLogin={() => setIsLoginOpen(true)}
+          onOpenLogin={() => navigate('/login')}
         />
 
         {/* Central Content Area */}

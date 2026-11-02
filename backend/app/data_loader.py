@@ -165,6 +165,38 @@ def ensure_demo_dataset_csv() -> Path:
             writer.writerows(rows)
     return DEMO_CSV_PATH
 
+def _bulk_insert_crop_production(conn, rows: List[Dict], batch_size: int = 500) -> int:
+    """Batch-insert crop_production records using multi-row VALUES for fast remote Postgres ingestion."""
+    if not rows:
+        return 0
+    cursor = conn.cursor()
+    for i in range(0, len(rows), batch_size):
+        batch = rows[i:i + batch_size]
+        placeholders = []
+        params = []
+        for r in batch:
+            placeholders.append("(?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            params.extend([
+                r["state"],
+                r["district"],
+                r["crop"],
+                int(r["crop_year"]),
+                r["season"],
+                float(r["area_hectares"]),
+                float(r["production_tonnes"]),
+                float(r["rainfall_mm"]),
+                int(r.get("is_demo", 1))
+            ])
+        query = f"""
+            INSERT INTO crop_production (
+                state, district, crop, crop_year, season,
+                area_hectares, production_tonnes, rainfall_mm, is_demo
+            ) VALUES {', '.join(placeholders)}
+        """
+        cursor.execute(query, params)
+    conn.commit()
+    return len(rows)
+
 def seed_demo_data_if_empty() -> int:
     """Populate database with demo dataset if table is currently empty."""
     conn = get_db_connection()
@@ -179,17 +211,7 @@ def seed_demo_data_if_empty() -> int:
     ensure_demo_dataset_csv()
     rows = generate_demo_dataset_rows()
 
-    cursor.executemany("""
-        INSERT INTO crop_production (
-            state, district, crop, crop_year, season,
-            area_hectares, production_tonnes, rainfall_mm, is_demo
-        ) VALUES (
-            :state, :district, :crop, :crop_year, :season,
-            :area_hectares, :production_tonnes, :rainfall_mm, :is_demo
-        )
-    """, rows)
-
-    conn.commit()
+    _bulk_insert_crop_production(conn, rows)
     inserted_count = len(rows)
     conn.close()
     return inserted_count
@@ -335,19 +357,8 @@ def validate_csv_content(csv_text: str) -> Dict:
     }
 
 def commit_validated_rows(rows: List[Dict]) -> int:
-    """Insert validated rows into database."""
+    """Insert validated rows into database using fast batch insert."""
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.executemany("""
-        INSERT INTO crop_production (
-            state, district, crop, crop_year, season,
-            area_hectares, production_tonnes, rainfall_mm, is_demo
-        ) VALUES (
-            :state, :district, :crop, :crop_year, :season,
-            :area_hectares, :production_tonnes, :rainfall_mm, :is_demo
-        )
-    """, rows)
-    conn.commit()
-    inserted = len(rows)
+    inserted = _bulk_insert_crop_production(conn, rows)
     conn.close()
     return inserted
