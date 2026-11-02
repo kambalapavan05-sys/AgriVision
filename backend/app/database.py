@@ -7,9 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATA_DIR = Path(__file__).parent / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
 
 class Row(tuple):
     """Supports both row[0] and row["name"], like sqlite3.Row."""
